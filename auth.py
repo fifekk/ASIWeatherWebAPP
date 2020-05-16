@@ -3,6 +3,7 @@ from flask_login import login_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import User
 from app import db
+from weather import getWeatherData
 
 auth = Blueprint('auth', __name__)
 
@@ -42,6 +43,7 @@ def signup_post():
     email = request.form.get('email')
     name = request.form.get('name')
     password = request.form.get('password')
+    #city = request.form.get('city')
 
     user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
 
