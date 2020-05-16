@@ -3,7 +3,8 @@ from flask_login import login_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import User
 from app import db
-from weather import getWeatherData
+from geolocation import getGeoLocation
+from weather import getWeatherDataByCoords
 
 auth = Blueprint('auth', __name__)
 
@@ -30,7 +31,9 @@ def login_post():
     # if the above check passes, then we know the user has the right credentials
     login_user(user, remember=remember)
     # return redirect(url_for('main.profile'))
-    return render_template('profile.html', user=user)
+    lat, lng, city = getGeoLocation()
+    clouds, icon, currentTemp, feelsLike, temp_min, temp_max, pressure, humidity = getWeatherDataByCoords(lat, lng)
+    return render_template('profile.html', user=user, clouds=clouds, icon=icon, currentTemp=currentTemp, feelsLike=feelsLike, temp_min=temp_min, temp_max=temp_max, pressure=pressure, humidity=humidity, city=city)
 
 
 @auth.route('/signup')

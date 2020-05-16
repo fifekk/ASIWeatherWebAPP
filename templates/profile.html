@@ -1,7 +1,51 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-  Welcome, {{ current_user.name }}
-</h1>
+
+    <style>
+        #welcome{
+            position: absolute;
+            bottom: 98%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 5%;
+            font-size: 32px;
+        }
+        .containerW{
+            position: absolute;
+            width: 50vw;
+            height: 50vh;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+        }
+        .weatherInfo{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            font-size: 24px;
+            text-align: left;
+        }
+        #city{
+            text-align: center;
+            font-size: 32px;
+        }
+        </style>
+
+        <div class="containerW">
+            <h1 id="welcome">
+                Welcome, {{ current_user.name|title }}
+            </h1>
+            <h1 id="city">{{ city }}</h1>
+            <h1 class="weatherInfo">
+            Overcast {{ clouds }} % <img src={{ icon }}> </br>
+            Current temperature {{ currentTemp }} C </br>
+            Wind-chill factor {{ feelsLike }} C </br>
+            Max temperature {{ temp_max }} C </br>
+            Min temperature {{ temp_min }} C </br>
+            Pressure {{ pressure }} hPa </br>
+            Humidity {{ humidity }} % </br>
+            </h1>
+        </div>
 {% endblock %}
