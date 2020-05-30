@@ -1,35 +1,60 @@
+import string
+import barnum
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import logging
-
-driver = webdriver.Chrome("P:\WebDev\Django\ASIWeatherWebApp\chromedriver.exe")
+import random
+'''
+W tym pliku zawarte są testy aplikacji stworzonej w ramach zajęć analiza systemów informatycznych. Wszystkie testy wykorzystują pakiet selenium
+'''
+# należy odkomentować jedną ze zmiennych driver (w zależności od zainstalowanej przeglądarki) i podać scieżkę do
+# pliku webdriver
+# driver = webdriver.Chrome()
+# driver = webdriver.firefox()
+# w zmiennej site_url należy podać adres, gdzie jest uruchomiona aplikacja
 site_url = "http://127.0.0.1:5000/"
+# przebieg testów jest logowany do apliku app.log, poniższa linijka konfiguruje pakiet logging
 logging.basicConfig(filename='app.log', filemode='w', format='%(asctime)s - %(message)s', level=logging.INFO)
 
+# poniższa metoda służy do wygenerowania losowego ciągu znaków
+def randomize_string():
+    stringLen = 8
+    alphabet = string.ascii_letters + string.digits
+    return ''.join((random.choice(alphabet) for i in range(stringLen)))
 
+# poniższy test sprawdza czy można zalogować się na nieistniejące konto
 def check_if_user_can_login_on_non_existent_account():
+    #wygeneruj dane do logowania
+    random_email = randomize_string() + '@gmail.com'
+    random_password = randomize_string()
+    #wejdź na podstonę /login
     driver.get(site_url+"/login")
+    #powiększ okno
     driver.maximize_window()
-    # loginButton = driver.find_element_by_xpath("//a[@href=/login]").click()
+    #znajdź inputy (mail i password)
     email = driver.find_element_by_name("email")
     password = driver.find_element_by_name("password")
+    #wyczyść pola
     email.clear()
     password.clear()
-    email.send_keys("123poaisd@gmail.com")
-    password.send_keys("lashdasjdioasd")
+    #uzupełnij dane
+    email.send_keys(random_email)
+    password.send_keys(random_password)
     password.send_keys(Keys.RETURN)
     try:
+        #sprawdź czy pojawił się komunikat o błędnych danych
         assert "Please check your login details and try again." in driver.page_source
         logging.info("User couldn't log in with fake credentias")
     except AssertionError:
         logging.info("System allowed user to log in with fake credentials")
 
-
+# poniższy test sprawdza czy można dwukrotnie zarejestrować się przy użyciu tego samego adresu email
 def check_if_user_can_register_two_times_on_the_same_email_address():
-    email = "jan.kowalski@gmail.com"
-    password = "janKowalski123"
-    name = "Jan Kowalski"
-
+    #wygeneruj dane
+    email = randomize_string() + '@gmail.com'
+    password = randomize_string()
+    name = randomize_string()
+    #zarejestruj się dwukrotnie przy użyciu tych samych danych
     for i in range(2):
         driver.get(site_url+"signup")
         driver.maximize_window()
@@ -42,24 +67,30 @@ def check_if_user_can_register_two_times_on_the_same_email_address():
         passwordInput.send_keys(Keys.RETURN)
 
     try:
+        #sprawdź czy pojawił się komunikat o istenijącym koncie
         assert "Email address already exists. Go to login page." not in driver.page_source
         logging.info("User couldn't register two times with the same credentials")
-    except:
+    except AssertionError:
         logging.info("User can register two times with the same credentials")
 
-
-def check_if_weather_api_works_and_user_can_get_weather_for_given_city(city):
+# poniższy test sprawdza czy WeatherApi działa poprawnie oraz czy użytkownik moze pobrać dane dotyczące prognozy
+# pogody dla dowolnego miasta
+def check_if_weather_api_works_and_user_can_get_weather_for_given_city():
+    #wygeneruj miasto
+    city = barnum.create_city_state_zip()[1]
     driver.get(site_url+"weather")
     cityInput = driver.find_element_by_name("city")
     cityInput.send_keys(city)
     cityInput.send_keys(Keys.RETURN)
     try:
+        #sprawdź czy są dane z pogodą
         assert city in driver.page_source
         logging.info("WeatherApi works")
-    except:
+    except AssertionError:
         logging.info("Weather api ERROR city: %s", city)
 
-
+# poniższy test sprawdza czy div z prognozą pogody jest wycentrowany na ekranie full hd, dla mniejszych rozdzielczości
+# test nie zadziała
 def check_if_div_with_weather_info_is_centered_1920_1080():
     driver.get(site_url + "weather")
     driver.maximize_window()
@@ -77,10 +108,12 @@ def check_if_div_with_weather_info_is_centered_1920_1080():
         logging.info("WeatherInfo div is not centered in 1920x1080")
     driver.close()
 
+# poniższa metoda grupuje wszystie testy
+def run_tests():
+    check_if_user_can_login_on_non_existent_account()
+    check_if_user_can_register_two_times_on_the_same_email_address()
+    check_if_weather_api_works_and_user_can_get_weather_for_given_city()
+    check_if_div_with_weather_info_is_centered_1920_1080()
 
 
-
-check_if_user_can_login_on_non_existent_account()
-check_if_user_can_register_two_times_on_the_same_email_address()
-check_if_weather_api_works_and_user_can_get_weather_for_given_city("asd")
-check_if_div_with_weather_info_is_centered_1920_1080()
+run_tests()
